@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+#______________________________________________________________________________________
+#Nasa
+
 while True:
 
     api_key = os.getenv("API_KEY")
@@ -36,6 +39,7 @@ while True:
     max_random_number_nasa = len(response_nasa.json())
 
     #______________________________________________________________________________________
+    #spaceX
 
 
     response_all_spaceX = requests.get(f"https://api.spacexdata.com/v3/launches")
@@ -43,12 +47,15 @@ while True:
 
     name_spaceX = 0
 
+    all_spaceX_pictures = []
+
     for launch in reversed(response_all_spaceX.json()):
         if launch['links']['flickr_images'] != []:
-            response_latest_spaceX = launch
-            break
+            all_spaceX_pictures.append(launch)  
+            
+    random_spaceX_launch = random.choice(all_spaceX_pictures)
 
-    for link_spaceX in response_latest_spaceX['links']['flickr_images']:
+    for link_spaceX in random_spaceX_launch['links']['flickr_images']:
         response = requests.get(link_spaceX)
         response.raise_for_status()
         name_spaceX = name_spaceX + 1
@@ -56,11 +63,11 @@ while True:
         with open(f"img_spaceX/{number_of_name}", "wb") as file:
             file.write(response.content)
 
-    max_random_number_spaceX = len(response_latest_spaceX['links']['flickr_images'])
+    max_random_number_spaceX = len(random_spaceX_launch['links']['flickr_images'])
 
     random_company = random.choice(["nasa" , "spaceX"])
 
-    response_latest_time_spaceX = response_latest_spaceX['launch_date_local'].replace("T" , " Time -> ")
+    response_latest_time_spaceX = random_spaceX_launch['launch_date_local'].replace("T" , " Time -> ")
 
     if random_company == "nasa":
         random_picture = random.randint(1, max_random_number_nasa)
@@ -68,9 +75,11 @@ while True:
         picture_text = GoogleTranslator(source='auto', target='ru').translate(description)
     else:
         random_picture = random.randint(1 , max_random_number_spaceX)
-        picture_text = f"Крайний запуск ракеты SpaceX. Cовершен: {response_latest_time_spaceX}"
+        picture_text = f"Запуск ракеты SpaceX. Cовершен: {response_latest_time_spaceX}"
 
-    
+    #____________________________________________________________________________________________________________________________
+    #Work with errors    
+
 
     #____________________________________________________________________________________________________________________________
     #Work with telegram
@@ -82,10 +91,10 @@ while True:
     bot = telegram.Bot(token=telegtam_bot_token)
 
     if len(picture_text) > 950:
-        picrure_text_residue = "  ↑  " + picture_text[950:-1]
-        picture_text = picture_text[0:950] + "..."
+        picrure_text_residue = f"  ^^^  || {picture_text[950:-1]} || "
+        picture_text = f"{picture_text[0:950]}..."
         bot.send_photo(chat_id=telegram_chat_id, photo=open(photo_path, 'rb'), caption=f"{picture_text}")
-        bot.send_message(chat_id=telegram_chat_id, text=f"{picrure_text_residue}")
+        bot.send_message(chat_id=telegram_chat_id, text=f"{picrure_text_residue}", parse_mode="MarkdownV2")
     else:
         bot.send_photo(chat_id=telegram_chat_id, photo=open(photo_path, 'rb'), caption=f"{picture_text}")
 
