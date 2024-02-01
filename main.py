@@ -88,7 +88,14 @@ while True:
         picture_text = GoogleTranslator(source='auto', target='ru').translate(description)
     else:
         random_picture = random.randint(1 , max_random_number_spaceX)
-        picture_text = f"Запуск ракеты SpaceX. \nCовершен↴ \n{response_latest_time_spaceX}"
+        description = GoogleTranslator(source='auto', target='ru').translate(random_spaceX_launch['details'])
+        picture_text = f"""\
+Запуск ракеты SpaceX.
+{description}
+
+Запуск совершен
+                                 │
+                                 ╰─>{response_latest_time_spaceX}"""
 
     #____________________________________________________________________________________________________________________________
     #Work with telegram
