@@ -6,9 +6,22 @@ import random
 import time
 #______________________________
 from deep_translator import GoogleTranslator
+from termcolor import cprint
 from dotenv import load_dotenv
 
 load_dotenv()
+
+def delete_files_in_folder(folder_path):
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename) 
+                try:
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                except Exception as e:
+                    cprint(f'Ошибка при удалении файла {file_path}. {e}', 'red')
+
+
+
 
 #______________________________________________________________________________________
 #Nasa
@@ -67,7 +80,7 @@ while True:
 
     random_company = random.choice(["nasa" , "spaceX"])
 
-    response_latest_time_spaceX = random_spaceX_launch['launch_date_local'].replace("T" , " Time -> ")
+    response_latest_time_spaceX = random_spaceX_launch['launch_date_local'].replace("T" , " Время -> ")
 
     if random_company == "nasa":
         random_picture = random.randint(1, max_random_number_nasa)
@@ -75,11 +88,7 @@ while True:
         picture_text = GoogleTranslator(source='auto', target='ru').translate(description)
     else:
         random_picture = random.randint(1 , max_random_number_spaceX)
-        picture_text = f"Запуск ракеты SpaceX. Cовершен: {response_latest_time_spaceX}"
-
-    #____________________________________________________________________________________________________________________________
-    #Work with errors    
-
+        picture_text = f"Запуск ракеты SpaceX. \nCовершен↴ \n{response_latest_time_spaceX}"
 
     #____________________________________________________________________________________________________________________________
     #Work with telegram
@@ -91,13 +100,22 @@ while True:
     bot = telegram.Bot(token=telegtam_bot_token)
 
     if len(picture_text) > 950:
-        picrure_text_residue = f"  ^^^  || {picture_text[950:-1]} || "
-        picture_text = f"{picture_text[0:950]}..."
-        bot.send_photo(chat_id=telegram_chat_id, photo=open(photo_path, 'rb'), caption=f"{picture_text}")
-        bot.send_message(chat_id=telegram_chat_id, text=f"{picrure_text_residue}", parse_mode="MarkdownV2")
+       
+        try:
+            picrure_text_residue = f"  ^^^  || {picture_text[950:-1]} || "
+            picture_text = f"{picture_text[0:950]}..."
+            bot.send_photo(chat_id=telegram_chat_id, photo=open(photo_path, 'rb'), caption=f"{picture_text}")
+            bot.send_message(chat_id=telegram_chat_id, text=f"{picrure_text_residue}", parse_mode="MarkdownV2")
+        except telegram.error.BadRequest:
+            picrure_text_residue = f"  ^^^   {picture_text[950:-1]}  "
+            picture_text = f"{picture_text[0:950]}..."
+            bot.send_photo(chat_id=telegram_chat_id, photo=open(photo_path, 'rb'), caption=f"{picture_text}")
+            bot.send_message(chat_id=telegram_chat_id, text=f"{picrure_text_residue}")
+            cprint("Parse mode error" , 'red')
     else:
         bot.send_photo(chat_id=telegram_chat_id, photo=open(photo_path, 'rb'), caption=f"{picture_text}")
 
     time.sleep(5)#time to next send
 
-
+    delete_files_in_folder("img_spaceX")
+    delete_files_in_folder("img_nasa")
