@@ -1,10 +1,10 @@
 import os
-import requests
 from pprint import pprint
-import telegram
 import random
 import time
 #______________________________
+import requests
+import telegram
 from deep_translator import GoogleTranslator
 from termcolor import cprint
 from dotenv import load_dotenv
